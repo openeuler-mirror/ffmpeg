@@ -1,24 +1,5 @@
 # Cuda and others are only available on some arches
 %global cuda_arches x86_64
-
-%if 0%{?el7}
-%global _without_aom      1
-%global _without_dav1d    1
-%global _without_frei0r   1
-%global _without_opus     1
-%global _without_srt      1
-%global _without_vpx      1
-%endif
-
-%if 0%{?fedora} || 0%{?rhel} > 7
-%if 0%{?rhel} > 7
-%ifarch x86_64 i686
-%endif
-%endif
-%ifarch x86_64
-%endif
-%endif
-
 # flavor nonfree
 %if 0%{?_with_cuda:1}
 %global debug_package %{nil}
@@ -80,7 +61,7 @@ ExclusiveArch: armv7hnl
 Summary:        Digital VCR and streaming server
 Name:           ffmpeg%{?flavor}
 Version:        4.2.4
-Release:        1
+Release:        2
 License:        %{ffmpeg_license}
 URL:            http://ffmpeg.org/
 %if 0%{?date}
@@ -196,6 +177,7 @@ This package contains the libraries for %{name}
 %package     -n libavdevice%{?flavor}
 Summary:        Special devices muxing/demuxing library
 Requires:       %{name}-libs%{_isa} = %{version}-%{release}
+Requires:	jack-audio-connection-kit
 
 %description -n libavdevice%{?flavor}
 Libavdevice is a complementary library to libavf "libavformat". It provides
@@ -421,5 +403,8 @@ install -pm755 tools/qt-faststart %{buildroot}%{_bindir}
 
 
 %changelog
+* Tue Jul 20 2021 weidong <weidong@uniontech.com> - 4.2.4-2
+- Fix requires conflict
+
 * Fri May 07 2021 weidong <weidong@uniontech.com> - 4.2.4-1
 - Initial package.
