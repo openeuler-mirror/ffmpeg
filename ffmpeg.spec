@@ -61,7 +61,7 @@ ExclusiveArch: armv7hnl
 Summary:        Digital VCR and streaming server
 Name:           ffmpeg%{?flavor}
 Version:        4.2.4
-Release:        2
+Release:        3
 License:        %{ffmpeg_license}
 URL:            http://ffmpeg.org/
 %if 0%{?date}
@@ -71,6 +71,8 @@ Source0:        http://ffmpeg.org/releases/ffmpeg-%{version}.tar.xz
 %endif
 Patch0:         fix_ppc_build.patch
 Patch1:         fix-vmaf-model-path.patch
+Patch2:         CVE-2021-3566.patch
+Patch3:         CVE-2021-38291.patch
 Requires:       %{name}-libs%{?_isa} = %{version}-%{release}
 %{?_with_cuda:BuildRequires: cuda-minimal-build-%{_cuda_version_rpm} cuda-drivers-devel}
 %{?_with_libnpp:BuildRequires: pkgconfig(nppc-%{_cuda_version})}
@@ -403,6 +405,9 @@ install -pm755 tools/qt-faststart %{buildroot}%{_bindir}
 
 
 %changelog
+* Sat Sep 04 2021 guoxiaoqi <guoxiaoqi2@huawei.com> - 4.2.4-3
+- Fix CVE-2021-3566 and CVE-2021-38291
+
 * Tue Jul 20 2021 weidong <weidong@uniontech.com> - 4.2.4-2
 - Fix requires conflict
 
