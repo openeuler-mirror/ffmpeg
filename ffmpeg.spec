@@ -1,3 +1,7 @@
+# Disabled in openEuler for compatibility
+%global _without_lensfun  1
+%global _without_lv2      1
+%global _without_vulkan   1
 # Cuda and others are only available on some arches
 %global cuda_arches x86_64
 # flavor nonfree
@@ -21,13 +25,15 @@
 %endif
 
 # Disable nvenc when not relevant
-%ifnarch %{cuda_arches}
+# Enable cuda for aarch64 according to rpmfusion
+# Link: https://github.com/rpmfusion/ffmpeg/commit/ddb0ec513463c866897714ae70792e4dda2ba608
+%ifnarch %{cuda_arches} aarch64
 %global _without_nvenc    1
 %endif
 
 # extras flags
 %if 0%{!?_cuda_version:1}
-%global _cuda_version 10.2
+%global _cuda_version 11.2
 %endif
 %global _cuda_version_rpm %(echo %{_cuda_version} | sed -e 's/\\./-/')
 %global _cuda_bindir %{_cuda_prefix}/bin
@@ -52,7 +58,7 @@ ExclusiveArch: armv7hnl
 %global lesser L
 %endif
 
-%if 0%{!?_without_amr} || 0%{?_with_gmp} || 0%{?_with_smb}
+%if 0%{!?_without_amr} || 0%{?_with_gmp} || 0%{?_with_smb} || 0%{?_with_vmaf}
 %global ffmpeg_license %{?lesser}GPLv3+
 %else
 %global ffmpeg_license %{?lesser}GPLv2+
@@ -60,8 +66,8 @@ ExclusiveArch: armv7hnl
 
 Summary:        Digital VCR and streaming server
 Name:           ffmpeg%{?flavor}
-Version:        4.2.4
-Release:        3
+Version:        4.4.2
+Release:        1
 License:        %{ffmpeg_license}
 URL:            http://ffmpeg.org/
 %if 0%{?date}
@@ -69,12 +75,10 @@ Source0:        ffmpeg-%{?branch}%{date}.tar.bz2
 %else
 Source0:        http://ffmpeg.org/releases/ffmpeg-%{version}.tar.xz
 %endif
-Patch0:         fix_ppc_build.patch
-Patch1:         fix-vmaf-model-path.patch
-Patch2:         CVE-2021-3566.patch
-Patch3:         CVE-2021-38291.patch
+Patch0:         fix-vmaf-model-path.patch
 Requires:       %{name}-libs%{?_isa} = %{version}-%{release}
 %{?_with_cuda:BuildRequires: cuda-minimal-build-%{_cuda_version_rpm} cuda-drivers-devel}
+%{?_with_cuda:%{?!_with_cuda_nvcc:BuildRequires: clang}}
 %{?_with_libnpp:BuildRequires: pkgconfig(nppc-%{_cuda_version})}
 BuildRequires:  alsa-lib-devel
 BuildRequires:  bzip2-devel
@@ -101,6 +105,7 @@ BuildRequires:  lame-devel >= 3.98.3
 %{!?_without_cdio:BuildRequires: libcdio-paranoia-devel}
 %{?_with_chromaprint:BuildRequires: libchromaprint-devel}
 %{?_with_crystalhd:BuildRequires: libcrystalhd-devel}
+%{!?_without_lensfun:BuildRequires: lensfun-devel}
 %if 0%{?_with_ieee1394}
 BuildRequires:  libavc1394-devel
 BuildRequires:  libdc1394-devel
@@ -110,6 +115,8 @@ BuildRequires:  libdrm-devel
 BuildRequires:  libgcrypt-devel
 BuildRequires:  libGL-devel
 BuildRequires:  libmodplug-devel
+%{?_with_mysofa:BuildRequires:  libmysofa-devel}
+%{?_with_openmpt:BuildRequires:  libopenmpt-devel}
 BuildRequires:  librsvg2-devel
 %{?_with_rtmp:BuildRequires: librtmp-devel}
 %{?_with_smb:BuildRequires: libsmbclient-devel}
@@ -120,7 +127,9 @@ BuildRequires:  libv4l-devel
 %{?!_without_vaapi:BuildRequires: libva-devel >= 0.31.0}
 BuildRequires:  libvdpau-devel
 BuildRequires:  libvorbis-devel
+%{?_with_vapoursynth:BuildRequires: vapoursynth-devel}
 %{?!_without_vpx:BuildRequires: libvpx-devel >= 1.4.0}
+%{?_with_mfx:BuildRequires: pkgconfig(libmfx) >= 1.23-1}
 %ifarch %{ix86} x86_64
 BuildRequires:  nasm
 %endif
@@ -131,6 +140,8 @@ BuildRequires:  nasm
 %{!?_without_amr:BuildRequires: opencore-amr-devel vo-amrwbenc-devel}
 %{?_with_omx:BuildRequires: libomxil-bellagio-devel}
 BuildRequires:  libxcb-devel
+%{?_with_libxml2:BuildRequires:  libxml2-devel}
+%{!?_without_lv2:BuildRequires:  lilv-devel}
 %{!?_without_openal:BuildRequires: openal-soft-devel}
 %if 0%{!?_without_opencl:1}
 BuildRequires:  opencl-headers ocl-icd-devel
@@ -146,12 +157,16 @@ BuildRequires:  perl(Pod::Man)
 %{?_with_snappy:BuildRequires: snappy-devel}
 BuildRequires:  soxr-devel
 BuildRequires:  speex-devel
+BuildRequires:  pkgconfig(srt)
+%{?_with_svtav1:BuildRequires: svt-av1-devel}
 %{?_with_tesseract:BuildRequires: tesseract-devel}
 #BuildRequires:  texi2html
 BuildRequires:  texinfo
 %{?_with_twolame:BuildRequires: twolame-devel}
+%{?_with_vmaf:BuildRequires: libvmaf-devel >= 1.5.2}
 %{?_with_wavpack:BuildRequires: wavpack-devel}
 %{!?_without_vidstab:BuildRequires:  vid.stab-devel}
+%{!?_without_vulkan:BuildRequires:  vulkan-loader-devel glslang-devel >= 11.0}
 %{!?_without_x264:BuildRequires: x264-devel >= 0.0.0-0.31}
 %{!?_without_x265:BuildRequires: x265-devel}
 %{!?_without_xvid:BuildRequires: xvidcore-devel}
@@ -212,7 +227,7 @@ This package contains development files for %{name}
     --arch=%{_target_cpu} \\\
     --optflags="%{optflags}" \\\
     --extra-ldflags="%{?__global_ldflags} %{?cuda_ldflags} %{?libnpp_ldlags}" \\\
-    --extra-cflags="%{?cuda_cflags} %{?libnpp_cflags}" \\\
+    --extra-cflags="%{?cuda_cflags} %{?libnpp_cflags} -I%{_includedir}/rav1e" \\\
     %{?flavor:--disable-manpages} \\\
     %{?progs_suffix:--progs-suffix=%{progs_suffix}} \\\
     %{?build_suffix:--build-suffix=%{build_suffix}} \\\
@@ -232,7 +247,7 @@ This package contains development files for %{name}
     %{!?_without_bluray:--enable-libbluray} \\\
     %{?_with_bs2b:--enable-libbs2b} \\\
     %{?_with_caca:--enable-libcaca} \\\
-    %{?_with_cuda:--enable-cuda-sdk --enable-nonfree} \\\
+    %{?_with_cuda_nvcc:--enable-cuda-nvcc --enable-nonfree} \\\
     %{?_with_cuvid:--enable-cuvid --enable-nonfree} \\\
     %{!?_without_cdio:--enable-libcdio} \\\
     %{?_with_ieee1394:--enable-libdc1394 --enable-libiec61883} \\\
@@ -248,6 +263,7 @@ This package contains development files for %{name}
     %{?_with_ilbc:--enable-libilbc} \\\
     %{?_with_libnpp:--enable-libnpp --enable-nonfree} \\\
     --enable-libmp3lame \\\
+    %{?_with_mysofa:--enable-libmysofa} \\\
     %{?_with_netcdf:--enable-netcdf} \\\
     %{?_with_mmal:--enable-mmal} \\\
     %{!?_without_nvenc:--enable-nvenc} \\\
@@ -258,31 +274,39 @@ This package contains development files for %{name}
     %{?_with_opencv:--enable-libopencv} \\\
     %{!?_without_opengl:--enable-opengl} \\\
     --enable-libopenjpeg \\\
+    %{?_with_openmpt:--enable-libopenmpt} \\\
     %{!?_without_opus:--enable-libopus} \\\
     %{!?_without_pulse:--enable-libpulse} \\\
     --enable-librsvg \\\
+    %{?_with_rav1e:--enable-librav1e} \\\
     %{?_with_rtmp:--enable-librtmp} \\\
     %{?_with_rubberband:--enable-librubberband} \\\
-    %{?_with_smb:--enable-libsmbclient} \\\
+    %{?_with_smb:--enable-libsmbclient --enable-version3} \\\
     %{?_with_snappy:--enable-libsnappy} \\\
-    %{!?_without_srt:--enable-libsrt} \\\
     --enable-libsoxr \\\
     --enable-libspeex \\\
+    %{!?_without_srt:--enable-libsrt} \\\
     --enable-libssh \\\
+    %{?_with_svtav1:--enable-libsvtav1} \\\
     %{?_with_tesseract:--enable-libtesseract} \\\
     --enable-libtheora \\\
     %{?_with_twolame:--enable-libtwolame} \\\
     --enable-libvorbis \\\
     --enable-libv4l2 \\\
     %{!?_without_vidstab:--enable-libvidstab} \\\
+    %{?_with_vmaf:--enable-libvmaf --enable-version3} \\\
+    %{?_with_vapoursynth:--enable-vapoursynth} \\\
     %{!?_without_vpx:--enable-libvpx} \\\
+    %{!?_without_vulkan:--enable-vulkan --enable-libglslang} \\\
     %{?_with_webp:--enable-libwebp} \\\
     %{!?_without_x264:--enable-libx264} \\\
     %{!?_without_x265:--enable-libx265} \\\
     %{!?_without_xvid:--enable-libxvid} \\\
+    %{?_with_libxml2:--enable-libxml2} \\\
     --enable-libzimg \\\
     %{?_with_zmq:--enable-libzmq} \\\
     %{!?_without_zvbi:--enable-libzvbi} \\\
+    %{!?_without_lv2:--enable-lv2} \\\
     --enable-avfilter \\\
     --enable-avresample \\\
     --enable-libmodplug \\\
@@ -318,6 +342,7 @@ cp -pr doc/examples/{*.c,Makefile,README} _doc/examples/
 %ifarch %{ix86}
     --cpu=%{_target_cpu} \
 %endif
+    %{?_with_mfx:--enable-libmfx} \
 %ifarch %{ix86} x86_64 %{power64}
     --enable-runtime-cpudetect \
 %endif
@@ -405,6 +430,12 @@ install -pm755 tools/qt-faststart %{buildroot}%{_bindir}
 
 
 %changelog
+* Mon Apr 18 2022 jchzhou <jchzhou@outlook.com> - 4.4.2-1
+- Update to 4.4.2 release
+- Add optional support (not enabled) for vulkan, rav1e, srt and vapoursynth
+- Add optional support (not enabled) for libopenmpt, lv2 and libwebp
+- Enable nvdec for aarch64, optional support cuda building with clang
+
 * Sat Sep 04 2021 guoxiaoqi <guoxiaoqi2@huawei.com> - 4.2.4-3
 - Fix CVE-2021-3566 and CVE-2021-38291
 
