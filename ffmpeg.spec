@@ -61,8 +61,8 @@ ExclusiveArch: armv7hnl
 Summary:        Digital VCR and streaming server
 Name:           ffmpeg%{?flavor}
 Version:        4.2.4
-Release:        4
-License:        %{ffmpeg_license}
+Release:        5
+License:        GPL-3.0-or-later
 URL:            http://ffmpeg.org/
 %if 0%{?date}
 Source0:        ffmpeg-%{?branch}%{date}.tar.bz2
@@ -407,6 +407,9 @@ install -pm755 tools/qt-faststart %{buildroot}%{_bindir}
 
 
 %changelog
+* Wed Jul 27 2022 Chenyx <chenyixiong3@huawei.com> - 4.2.4-5
+- License compliance rectification
+
 * Thu Jun 2 2022 yangweidong <yangweidong9@huawei.com> - 4.2.4-4
 - Fix CVE-2021-38114 and CVE-2020-35964
 
