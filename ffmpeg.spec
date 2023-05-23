@@ -61,7 +61,7 @@ ExclusiveArch: armv7hnl
 Summary:        Digital VCR and streaming server
 Name:           ffmpeg%{?flavor}
 Version:        4.2.4
-Release:        5
+Release:        6
 License:        GPL-3.0-or-later
 URL:            http://ffmpeg.org/
 %if 0%{?date}
@@ -75,6 +75,7 @@ Patch2:         CVE-2021-3566.patch
 Patch3:         CVE-2021-38291.patch
 Patch4:         CVE-2021-38114.patch
 Patch5:         CVE-2020-35964.patch
+Patch6:         fix-clang.patch
 Requires:       %{name}-libs%{?_isa} = %{version}-%{release}
 %{?_with_cuda:BuildRequires: cuda-minimal-build-%{_cuda_version_rpm} cuda-drivers-devel}
 %{?_with_libnpp:BuildRequires: pkgconfig(nppc-%{_cuda_version})}
@@ -310,6 +311,10 @@ mkdir -p _doc/examples
 cp -pr doc/examples/{*.c,Makefile,README} _doc/examples/
 
 %build
+%if "%toolchain" == "clang"
+	export CFLAGS="$CFLAGS -Wno-error=int-conversion"
+	export CXXFLAGS="$CXXFLAGS -Wno-error=int-conversion"
+%endif
 %{?_with_cuda:export PATH=${PATH}:%{_cuda_bindir}}
 %{ff_configure}\
     --shlibdir=%{_libdir} \
@@ -407,6 +412,9 @@ install -pm755 tools/qt-faststart %{buildroot}%{_bindir}
 
 
 %changelog
+* Tue May 23 2023 yoo <sunyuechi@iscas.ac.cn> - 4.2.4-6
+- fix clang build error
+
 * Wed Jul 27 2022 Chenyx <chenyixiong3@huawei.com> - 4.2.4-5
 - License compliance rectification
 
