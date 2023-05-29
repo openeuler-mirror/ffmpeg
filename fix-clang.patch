@@ -1,0 +1,16 @@
+diff -u -r ffmpeg-4.2.4/configure ffmpeg-4.2.4/configure
+--- ffmpeg-4.2.4/configure	2020-07-09 17:17:46.000000000 +0800
++++ ffmpeg-4.2.4/configure	2023-05-23 07:52:00.000000000 +0800
+@@ -3646,9 +3646,9 @@
+ 
+ # toolchain
+ ar_default="ar"
+-cc_default="gcc"
+-cxx_default="g++"
+-host_cc_default="gcc"
++cc_default=${CC:-"gcc"}
++cxx_default=${CXX:-"g++"}
++host_cc_default=${CC:-"gcc"}
+ doxygen_default="doxygen"
+ install="install"
+ ln_s_default="ln -s -f"
